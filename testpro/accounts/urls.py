@@ -4,7 +4,7 @@ from .views import some_view, AjaxExampleForm, getPhoneNumberRegistered, getPhon
 
 from rest_framework import routers, serializers, viewsets
 router = routers.DefaultRouter()
-router.register(r'users', getPhoneNumberRegistered_TimeBased)
+# router.register(r'users', getPhoneNumberRegistered_TimeBased, basename='verify')
 
 urlpatterns = [
     path('', include(router.urls)),
