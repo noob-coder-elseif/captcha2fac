@@ -18,49 +18,73 @@ We’ll create a new user, django, for running our application. This provides a 
 
 To create the new user:
 
+```sh
 useradd -m django
+```
+
 The -m flag creates a new home directory: /home/django.
 
 Setting up the Python environment
-First things first: update your package lists with apt-get update
+First things first: update your package lists with 
+
+```sh
+apt-get update
+```
 
 Ubuntu 18.04 ships with Python 3.6, but it doesn’t ship with pip, which you’ll need to install your dependencies.
 
 
+```sh
 apt-get install python3-pip
+```
+
 Now that we have pip, let’s create a virtual environment. Virtual environments help to avoid conflicts with Python packages used by Linux.
 
+```sh
 pip3 install virtualenv
 cd /home/django
 virtualenv env
+```
+
 Now you’ve created a virtual Python 3.6 environment in the /home/django/env folder which can be activated with the following command:Now that we have pip, let’s create a virtual environment. Virtual environments help to avoid conflicts with Python packages used by Linux.
 
 
+```sh
 source /home/django/env/bin/activate
+```
+
 Setting up the Django project
 For this tutorial, we’ll create a temporary Django project. If you’re deploying your own code, you’ll have to upload it to the server instead. We’ll be operating in the home directory, /home/django.Setting up the Django project
 
 Let’s create the Django project:
 
+```sh
 cd /home/django
 source env/bin/activate
 pip install django
 django-admin startproject tutorial
+```
+
 Verify things are working by running:
 
-
+```sh
 cd tutorial
 python manage.py runserver 0.0.0.0:80
+```
+
 Our Ubuntu instance is running at 178.128.229.34 so we’ll connect to that url and Verify things are working by running:
 
 You’ll likely see something like this:
 
 To fix this, we’ll edit /home/django/tutorial/tutorial/settings.py. Find  ALLOWED_HOSTS = [] and set it to:
 
+```sh
 ALLOWED_HOSTS = [
 '178.128.229.34' # replace this with your server's IP address
  or the domain name you're using to connect
 ]
+```
+
 Now let’s go back to http://178.128.229.34:
 
 
@@ -75,11 +99,17 @@ Common choices are PostgreSQL and Mysql. We’ll go with PostgreSQL for this tut
 
 Start by installing PostgreSQL:
 
+```sh
 apt-get install postgresql
+```
+
 Then launch psql, a database shell. By default, only the postgres user is able to connect to the database so we’ll first have to authenticate as that user:
 
+```sh
 su - postgres
 psql
+```
+
 Next, we need a database and a user to access that database:
 
 create database tutorial;
@@ -92,7 +122,10 @@ Great! Now we have our database and user set up. Let’s verify we can log in to
 
 We’ll try to open up a database shell, this time logging in to the database we created with the user we created:
 
+```sh
 psql -Ututorial_user -dtutorial -h127.0.0.1 -W
+```
+
 At the prompt, enter the password we created: tutorial_password.
 
 If you see a database shell, you’ve been successful. If you see any errors, you’ll have to go back and figure out what’s wrong.
@@ -100,20 +133,24 @@ If you see a database shell, you’ve been successful. If you see any errors, yo
 Connecting Django to the database
 To get Django connected to the database, we first need to install the Python PostgreSQL adapter:
 
+```sh
 pip install psycopg2-binary
+```
+
 Then, let’s open up /home/django/tutorial/tutorial/settings.pyand configure the connection.
 
 Find your current database connection; if you didn’t modify it, it might look something like this:
 
-
+```sh
 DATABASES = {
 'default': {
 'ENGINE': 'django.db.backends.sqlite3',
 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 }
 }
+```
 To connect to PostgreSQL, we’ll replace it with the following:
-
+```sh
 DATABASES = {
 'default': {
 'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -124,10 +161,13 @@ DATABASES = {
 'PORT': '5432',
 }
 }
+```
 Let’s test the connection:
 
+```sh
 cd /home/django/tutorial
 python manage.py runserver 0.0.0.0:80
+```
 You should again be able to visit your website (for us at http://178.128.229.34/, but replace that with your IP or hostname).
 
 If all is well, we can continue.
@@ -139,14 +179,17 @@ When you run python manage.py runserver, you’re using Django’s development s
 Common choices for production web servers are nginx and Apache. For this tutorial, we will use nginx.
 
 Install nginx using the following:
-
+```sh
 apt-get install nginx
+```
+
 Now, if everything has worked well, nginx should be running on port 80. Go ahead and check out you website; you should see:
 
 
 
 Great, so nginx is up and running! Next we’ll need to configure it to communicate with Django. Open up the nginx configuration file, located at /etc/nginx/sites-available/default. Let’s replace the file with the following:
 
+```sh
 upstream django {
 server 127.0.0.1:8000;
 }
@@ -164,6 +207,8 @@ proxy_redirect off;
 proxy_pass http://django;
 }
 }
+```
+
 Test the configuration file by running nginx -t. If everything is ok, we can reload by running nginx -s reload.
 
 Now, if you visit your site you will see the following:
@@ -174,8 +219,11 @@ Whenever you see this, it means that nginx was unable to pass the request to the
 
 Let’s start the Django development server and try again:
 
+```sh
 cd /home/django/tutorial
 python manage.py runserver 127.0.0.1:8000
+```
+
 and again visit your website. You should see your Django application.
 
 Mounting Django on Gunicorn
@@ -184,13 +232,14 @@ Remember, we don’t want to use our Django development server in production. In
 Common choices for a WSGI server are Gunicorn and uWSGI. For this tutorial we will use Gunicorn.
 
 Let’s install Gunicorn:
-
-pip install gunicorn
 Next, we can start gunicorn as follows:
 
-
+```sh
+pip install gunicorn
 cd /home/django/tutorial
 gunicorn tutorial.wsgi
+```
+
 Now you should be able to visit your website and see your application running properly.
 
 Running Gunicorn as a service
@@ -201,25 +250,33 @@ If the server reboots, the gunicorn process won’t start.
 The process is running as root. If hackers find an exploit in our app’s code, they’ll be able to run commands as root. We don’t want this; but that’s why we created the djangouser!
 To solve these problems, we’re going to run Gunicorn as a systemd service.
 
+```sh
 cd /home/django
 mkdir bin
 cd /home/django/bin
 touch start-server.sh
+```
 
 In start-server.sh:
 
+```sh
 cd /home/django
 source env/bin/activate
 cd tutorial
 gunicorn tutorial.wsgi
+```
+
 Now you can test the script:
 
-
+```sh
 cd /home/django/bin
 bash start-server.sh
+```
+
 # visit your website, it should be running
 Now we create the systemd service for Gunicorn. Create /etc/systemd/system/gunicorn.service  as follows:
 
+```sh
 [Unit]
 Description=Gunicorn
 After=network.target
@@ -232,21 +289,31 @@ Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
+```
+
 Now, let’s enable the service & start it
 
+```sh
 systemctl enable gunicorn
 systemctl start gunicorn
+```
+
 You should be able to see your website at the moment.
 
 We can turn gunicorn off as follows:
-
+```sh
 systemctl stop gunicorn
+```
+
 And you should see a 502 Bad Gateway.
 
 
 Finally, let’s check the boot cycle:
 
+```sh
 systemctl start gunicorn
+```
+
 reboot now
 When your machine comes back online, you should see your website is up.
 
@@ -255,28 +322,38 @@ If you visit the Django admin panel on your website at /admin/ (for us, it’s h
 
 We’ll need to create a new folder for static files:
 
+```sh
 cd /home/django
 mkdir static
-Then, we tell Django that’s where it should put the static files by editing /home/django/tutorial/tutorial/settings.py, and adding:
+```
 
+Then, we tell Django that’s where it should put the static files by editing /home/django/tutorial/tutorial/settings.py, and adding:
+```sh
 STATIC_ROOT = '/home/django/static/'
+```
 Now we can gather the static files:
 
+```sh
 cd /home/django
 source env/bin/activate
 cd tutorial
 python manage.py collectstatic
+```
+
 Finally, we need to tell nginx to serve those static files.
 
 
 Let’s open up /etc/nginx/sites-available/default and add the following directly above your location / block:
 
+```sh
 location /static/ {
 root /home/django;
 try_files $uri =404;
 }
-The whole file should now look like this:
+```
 
+The whole file should now look like this:
+```sh
 upstream django {
 server 127.0.0.1:8000;
 }
@@ -299,6 +376,8 @@ proxy_redirect off;
 proxy_pass http://django;
 }
 }
+```
+
 We can reload the file using nginx -s reload
 
 
