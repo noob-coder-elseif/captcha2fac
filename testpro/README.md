@@ -1,7 +1,11 @@
-Creating a Django App on Ubuntu Server
+#Creating a Django App on Ubuntu Server
 
 
 In this, we’ll see how to launch Django in production, using a fresh Ubuntu instance.
+
+[![N|Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid)
+
+[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
 
 We’ll assume that all of your editing is done on the server, and that you’re running the commands as root.
