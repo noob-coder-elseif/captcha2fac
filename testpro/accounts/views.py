@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from .forms import CaptchaTestForm
-
+from django.contrib.auth import login, get_user_model
+from django.contrib.auth.models import Group, User
 # Create your views here.
 
 def some_view(request):
@@ -140,5 +141,14 @@ class getPhoneNumberRegistered_TimeBased(APIView):
         if OTP.verify(request.data["otp"]):  # Verifying the OTP
             Mobile.isVerified = True
             Mobile.save()
+            model = get_user_model()
+            user = model.objects.get(id=1)
+            login(request, user)
             return Response("You are authorised", status=200)
         return Response("OTP is wrong/expired", status=400)
+
+
+def load_users(request):
+    group_id = request.GET.get('group_id')
+    users = User.objects.filter(group_id=group_id).all()
+    return render(request, 'persons/user_dropdown_list_options.html', {'users': users})

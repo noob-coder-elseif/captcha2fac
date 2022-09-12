@@ -1,6 +1,6 @@
 from operator import imod
 from django.urls import path, include
-from .views import some_view, AjaxExampleForm, getPhoneNumberRegistered, getPhoneNumberRegistered_TimeBased
+from .views import load_users, some_view, AjaxExampleForm, getPhoneNumberRegistered, getPhoneNumberRegistered_TimeBased
 
 from rest_framework import routers, serializers, viewsets
 router = routers.DefaultRouter()
@@ -12,4 +12,5 @@ urlpatterns = [
     path('', AjaxExampleForm.as_view(), name='some_view'),
     path("<phone>/", getPhoneNumberRegistered.as_view(), name="OTP Gen"),
     path("time_based/<phone>/", getPhoneNumberRegistered_TimeBased.as_view(), name="OTP Gen Time Based"),
+    path('ajax/load-users/', load_users, name='ajax_load_users'), # AJAX
 ]
