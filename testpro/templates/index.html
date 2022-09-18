@@ -3,6 +3,7 @@
 
     </head>
     <body>
+        
         <form action='.' method='POST' data-cities-url="{% url 'ajax_load_cities' %}>
             {% csrf_token %}
             {{ form }}
